@@ -3,11 +3,13 @@ const elements = {
     setupScreen: document.querySelector('#setup-screen'),
     placementScreen: document.querySelector('#placement-screen'),
     gameScreen: document.querySelector('#game-screen'),
+    gameOverScreen: document.querySelector('#game-over-screen'),
 
     // Buttons
     startSetupBtn: document.querySelector('#start-setup-btn'),
     confirmPlacementBtn: document.querySelector('#confirm-placement-btn'),
     rotateBtn: document.querySelector('#rotate-btn'),
+    restartBtn: document.querySelector('#restart-btn'),
 
     // Inputs
     player1NameInput: document.querySelector('#player1-name'),
@@ -30,7 +32,7 @@ const elements = {
     player2Header: document.querySelector('#player2-header'),
     player1Ships: document.querySelector('#player1-ships'),
     player2Ships: document.querySelector('#player2-ships'),
-
+    winnerName: document.querySelector('#winner-name'),
 };
 
 const state = {
@@ -278,7 +280,7 @@ function makeMove(targetPlayer, x, y) {
     if (isHit) {
         cell.classList.add('hit');
 
-        const sunkShip = this.findSunkShip(targetPlayer, x, y);
+        const sunkShip = findSunkShip(targetPlayer, x, y);
 
         if (sunkShip) {
             markAroundSunkShip(targetPlayer, sunkShip);
@@ -408,6 +410,7 @@ function showScreen(screen) {
     elements.setupScreen.classList.add('hidden');
     elements.placementScreen.classList.add('hidden');
     elements.gameScreen.classList.add('hidden');
+    elements.gameOverScreen.classList.add('hidden');
 
     switch (screen) {
         case 'setup':
@@ -418,6 +421,9 @@ function showScreen(screen) {
             break;
         case 'game':
             elements.gameScreen.classList.remove('hidden');
+            break;
+        case 'gameOver':
+            elements.gameOverScreen.classList.remove('hidden');
             break;
     }
 }
@@ -441,12 +447,42 @@ function startGame() {
 
 function endGame()
 {
+    // Określenie zwycięzcy
+    const winner = state.currentPlayer;
+    elements.winnerName.textContent = state.players[winner].name;
+
+    // Pokazanie ekranu końcowego
+    showScreen('gameOver');
+}
+
+function restart() {
+    // Reset stanu gry
+    state.currentPlayer = 1;
+    state.players[0].boards = Array.from({length: 10}, () => Array.from({length: 10}, () => 0));
+    state.players[0].ships = [];
+    state.players[0].shipsCount = 9;
+
+    state.players[1].boards = Array.from({length: 10}, () => Array.from({length: 10}, () => 0));
+    state.players[1].ships = [];
+    state.players[1].shipsCount = 9;
+
+    state.placement.remainingShips = {2: 4, 3: 3, 4: 2};
+    state.placement.shipSize = 4;
+    state.placement.direction = 'horizontal';
+
+    // Aktualizacja UI
+    elements.player1Ships.textContent = 9;
+    elements.player2Ships.textContent = 9;
+
+    // Powrót do ekranu ustawiania nazw
+    showScreen('setup');
 }
 
 function init() {
     elements.startSetupBtn.addEventListener('click', () => startPlacement());
     elements.confirmPlacementBtn.addEventListener('click', () => confirmPlacement());
     elements.rotateBtn.addEventListener('click', () => rotateShip());
+    elements.restartBtn.addEventListener('click', () => restart());
 
     showScreen('setup');
 }

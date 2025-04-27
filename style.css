@@ -169,3 +169,17 @@ button:disabled {
     font-size: 20px;
     color: black;
 }
+
+#game-over-screen {
+    text-align: center;
+}
+
+#winner-info {
+    font-size: 1.2em;
+    margin: 20px 0;
+}
+
+#restart-btn {
+    font-size: 1.1em;
+    padding: 10px 20px;
+}
