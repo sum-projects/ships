@@ -36,6 +36,11 @@ const state = {
     placement: {
         shipSize: 4,
         direction: 'horizontal',
+        remainingShips: {
+            2: 4,
+            3: 3,
+            4: 2,
+        },
     },
     currentPlayer: 0,
 };
@@ -73,6 +78,8 @@ cells.forEach(cell => {
 
 // Game Functions
 function showPlacementPreview(x, y) {
+    if (!state.placement.shipSize) return;
+
     const cells = elements.placementBoard.querySelectorAll('.cell');
 
     const isHorizontal = state.placement.direction === 'horizontal';
@@ -86,7 +93,6 @@ function showPlacementPreview(x, y) {
         // Sprawdź, czy komórka jest w granicach planszy
         if (cellX >= 0 && cellX < 10 && cellY >= 0 && cellY < 10) {
             const index = cellY * 10 + cellX;
-            console.log(`Previewing cell at (${cellX}, ${cellY})`);
             cells[index].classList.add(isValid ? 'placement-hover' : 'placement-invalid');
         }
     }
@@ -100,26 +106,44 @@ function clearPlacementPreview() {
 }
 
 function placeShip(x, y) {
-    const isHorizontal = state.placement.direction === 'horizontal';
+    if (!state.placement.shipSize) return;
 
-    if (!isValidPlacement(x, y, state.placement.shipSize, isHorizontal)) {
+    const isHorizontal = state.placement.direction === 'horizontal';
+    const shipSize = state.placement.shipSize;
+    const currentPlayer = state.currentPlayer;
+
+    if (!isValidPlacement(x, y, shipSize, isHorizontal)) {
         return;
     }
 
-    for (let i = 0; i < state.placement.shipSize; i++) {
+    const shipCells = [];
+    for (let i = 0; i < shipSize; i++) {
         const cellX = isHorizontal ? x + i : x;
         const cellY = isHorizontal ? y : y + i;
 
         // Zaznacz komórkę jako zajętą
-        state.players[state.currentPlayer].boards[cellY][cellX] = 1;
+        state.players[currentPlayer].boards[cellY][cellX] = 1;
 
         // Dodaj statek
-        state.players[state.currentPlayer].ships.push([cellX, cellY]);
+        shipCells.push([cellX, cellY]);
 
         // Zaznacz komórkę na planszy
         const index = cellY * 10 + cellX;
         const cells = elements.placementBoard.querySelectorAll('.cell');
         cells[index].classList.add('ship');
+    }
+
+    // Dodanie statku do listy statków
+    state.players[currentPlayer].ships.push(shipCells);
+
+    // Zmniejsz liczbę pozostałych statków
+    state.placement.remainingShips[shipSize]--;
+
+    console.log(state.placement.remainingShips);
+    if (state.placement.remainingShips[shipSize] === 0) {
+        if (shipSize === 4) state.placement.shipSize = 3;
+        else if (shipSize === 3) state.placement.shipSize = 2;
+        else if (shipSize === 2) state.placement.shipSize = null;
     }
 }
 
