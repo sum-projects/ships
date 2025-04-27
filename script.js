@@ -11,6 +11,9 @@ const confirmPlacementBtn = document.querySelector('#confirm-placement-btn');
 const player1NameInput = document.querySelector('#player1-name');
 const player2NameInput = document.querySelector('#player2-name');
 
+// Game Elements
+const placementInfo = document.querySelector('#placement-info');
+
 // State
 const state = {
     players: [
@@ -26,6 +29,8 @@ const state = {
 startSetupBtn.addEventListener('click', () => {
     state.players[0].name = player1NameInput.value;
     state.players[1].name = player2NameInput.value;
+
+    placementInfo.textContent = `${state.players[0].name}, ustaw swoje statki`;
 
     setupScreen.classList.add('hidden');
     placementScreen.classList.remove('hidden');
