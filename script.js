@@ -15,14 +15,22 @@ const elements = {
 
     // Boards
     placementBoard: document.querySelector('#placement-board'),
+    player1Board: document.querySelector('#player1-board'),
+    player2Board: document.querySelector('#player2-board'),
 
     // Game Elements
     placementInfo: document.querySelector('#placement-info'),
     shipCounters: {
-        2: document.getElementById('ship-2'),
-        3: document.getElementById('ship-3'),
-        4: document.getElementById('ship-4')
-    }
+        2: document.querySelector('#ship-2'),
+        3: document.querySelector('#ship-3'),
+        4: document.querySelector('#ship-4')
+    },
+    currentPlayerSpan: document.querySelector('#current-player'),
+    player1Header: document.querySelector('#player1-header'),
+    player2Header: document.querySelector('#player2-header'),
+    player1Ships: document.querySelector('#player1-ships'),
+    player2Ships: document.querySelector('#player2-ships'),
+
 };
 
 const state = {
@@ -283,6 +291,17 @@ function showScreen(screen) {
 }
 
 function startGame() {
+    createBoard(elements.player1Board);
+    createBoard(elements.player2Board);
+
+    state.currentPlayer = 0;
+    elements.currentPlayerSpan.textContent = state.players[state.currentPlayer].name;
+    elements.player1Header.textContent = state.players[0].name;
+    elements.player2Header.textContent = state.players[1].name;
+
+    elements.player1Ships.textContent = state.players[0].ships.length;
+    elements.player2Ships.textContent = state.players[1].ships.length;
+
     this.showScreen('game');
 }
 

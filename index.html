@@ -25,7 +25,7 @@
             </div>
         </div>
 
-        <div id="placement-screen">
+        <div class="hidden" id="placement-screen">
             <h2>Ustaw swoje statki</h2>
             <p id="placement-info">Gracz 1, ustaw swoje statki</p>
 
@@ -46,8 +46,23 @@
             <button id="confirm-placement-btn" disabled>Potwierdź ustawienie</button>
         </div>
 
-        <div class="hidden" id="game-screen">
+        <div id="game-screen">
             <h2>Bitwa</h2>
+            <p id="game-info">Tura gracza: <span id="current-player">Gracz 1</span></p>
+
+            <div class="board-container">
+                <div class="player-board">
+                    <h3 id="player1-header">Gracz 1</h3>
+                    <div class="ship-counter">Pozostałe statki: <span id="player1-ships">9</span></div>
+                    <div id="player1-board" class="board"></div>
+                </div>
+
+                <div class="player-board">
+                    <h3 id="player2-header">Gracz 2</h3>
+                    <div class="ship-counter">Pozostałe statki: <span id="player2-ships">9</span></div>
+                    <div id="player2-board" class="board"></div>
+                </div>
+            </div>
         </div>
 
         <div class="hidden" id="game-over-screen">

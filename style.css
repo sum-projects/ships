@@ -11,7 +11,7 @@ body {
     padding: 20px;
 }
 
-h1, h2 {
+h1, h2, h3 {
     text-align: center;
     margin-bottom: 20px;
     color: #003366;
@@ -66,7 +66,7 @@ button:disabled {
 }
 
 /* Placement */
-#placement-info {
+#placement-info, #game-info {
     text-align: center;
     font-weight: bold;
     margin: 10px 0;
@@ -121,3 +121,22 @@ button:disabled {
 .ship {
     background-color: #808080!important;
 }
+
+/* Battle */
+.board-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.player-board {
+    margin: 0 20px;
+}
+
+.ship-counter {
+    text-align: center;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
