@@ -40,9 +40,25 @@ for (let y = 0; y < 10; y++) {
     }
 }
 
+const cells = placementBoard.querySelectorAll('.cell');
+cells.forEach(cell => {
+
+    cell.addEventListener('mouseenter', e => {
+        console.log(`Mouse entered cell at (${cell.dataset.x}, ${cell.dataset.y})`);
+    });
+
+    cell.addEventListener('mouseleave', e => {
+        console.log(`Mouse left cell at (${cell.dataset.x}, ${cell.dataset.y})`);
+    });
+
+    cell.addEventListener('click', e => {
+        console.log(`Cell clicked at (${cell.dataset.x}, ${cell.dataset.y})`);
+    });
+});
+
 startSetupBtn.addEventListener('click', () => {
-    state.players[0].name = player1NameInput.value;
-    state.players[1].name = player2NameInput.value;
+    state.players[0].name = player1NameInput.value || 'Gracz 1';
+    state.players[1].name = player2NameInput.value || 'Gracz 2';
 
     placementInfo.textContent = `${state.players[0].name}, ustaw swoje statki`;
 
