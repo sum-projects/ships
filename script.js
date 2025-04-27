@@ -48,38 +48,8 @@ const state = {
         },
     },
     currentPlayer: 0,
+    currentScreen: 'setup',
 };
-
-// Game initialization
-for (let y = 0; y < 10; y++) {
-    for (let x = 0; x < 10; x++) {
-        const cell = document.createElement('div');
-        cell.classList.add('cell');
-        cell.dataset.x = x;
-        cell.dataset.y = y;
-        elements.placementBoard.appendChild(cell);
-    }
-}
-
-const cells = elements.placementBoard.querySelectorAll('.cell');
-cells.forEach(cell => {
-
-    cell.addEventListener('mouseenter', e => {
-        const x = parseInt(cell.dataset.x);
-        const y = parseInt(cell.dataset.y);
-        showPlacementPreview(x, y);
-    });
-
-    cell.addEventListener('mouseleave', e => {
-        clearPlacementPreview();
-    });
-
-    cell.addEventListener('click', e => {
-        const x = parseInt(cell.dataset.x);
-        const y = parseInt(cell.dataset.y);
-        placeShip(x, y);
-    });
-});
 
 // Game Functions
 function showPlacementPreview(x, y) {
@@ -218,22 +188,84 @@ function getShipName(size) {
     }
 }
 
-// Game Listeners
-elements.startSetupBtn.addEventListener('click', () => {
+function createBoard(board) {
+    for (let y = 0; y < 10; y++) {
+        for (let x = 0; x < 10; x++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.dataset.x = x;
+            cell.dataset.y = y;
+            board.appendChild(cell);
+        }
+    }
+}
+
+function setupPlacementBoardListeners() {
+    const cells = elements.placementBoard.querySelectorAll('.cell');
+    cells.forEach(cell => {
+
+        cell.addEventListener('mouseenter', e => {
+            const x = parseInt(cell.dataset.x);
+            const y = parseInt(cell.dataset.y);
+            showPlacementPreview(x, y);
+        });
+
+        cell.addEventListener('mouseleave', e => {
+            clearPlacementPreview();
+        });
+
+        cell.addEventListener('click', e => {
+            const x = parseInt(cell.dataset.x);
+            const y = parseInt(cell.dataset.y);
+            placeShip(x, y);
+        });
+    });
+}
+
+function startPlacement() {
     state.players[0].name = elements.player1NameInput.value || 'Gracz 1';
     state.players[1].name = elements.player2NameInput.value || 'Gracz 2';
 
     elements.placementInfo.textContent = `${state.players[0].name}, ustaw swoje statki`;
 
-    elements.setupScreen.classList.add('hidden');
-    elements.placementScreen.classList.remove('hidden');
-});
+    createBoard(elements.placementBoard);
+    showScreen('placement');
+    setupPlacementBoardListeners();
+}
 
-elements.confirmPlacementBtn.addEventListener('click', () => {
-    elements.placementScreen.classList.add('hidden');
-    elements.gameScreen.classList.remove('hidden');
-});
+function confirmPlacement() {
+}
 
-elements.rotateBtn.addEventListener('click', () => {
+function rotateShip() {
     state.placement.direction = state.placement.direction === 'horizontal' ? 'vertical' : 'horizontal';
-});
+}
+
+function showScreen(screen) {
+    state.currentScreen = screen;
+
+    elements.setupScreen.classList.add('hidden');
+    elements.placementScreen.classList.add('hidden');
+    elements.gameScreen.classList.add('hidden');
+
+    switch (screen) {
+        case 'setup':
+            elements.setupScreen.classList.remove('hidden');
+            break;
+        case 'placement':
+            elements.placementScreen.classList.remove('hidden');
+            break;
+        case 'game':
+            elements.gameScreen.classList.remove('hidden');
+            break;
+    }
+}
+
+function init() {
+    elements.startSetupBtn.addEventListener('click', () => startPlacement());
+    elements.confirmPlacementBtn.addEventListener('click', () => confirmPlacement());
+    elements.rotateBtn.addEventListener('click', () => rotateShip());
+
+    showScreen('setup');
+}
+
+init();
