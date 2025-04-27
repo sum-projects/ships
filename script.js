@@ -106,7 +106,6 @@ function placeShip(x, y) {
         return;
     }
 
-    const shipCells = [];
     for (let i = 0; i < state.placement.shipSize; i++) {
         const cellX = isHorizontal ? x + i : x;
         const cellY = isHorizontal ? y : y + i;
@@ -115,7 +114,7 @@ function placeShip(x, y) {
         state.players[state.currentPlayer].boards[cellY][cellX] = 1;
 
         // Dodaj statek
-        shipCells.push([cellX, cellY]);
+        state.players[state.currentPlayer].ships.push([cellX, cellY]);
 
         // Zaznacz komórkę na planszy
         const index = cellY * 10 + cellX;
@@ -129,6 +128,31 @@ function isValidPlacement(x, y, shipSize, isHorizontal) {
         if (x + shipSize > 10) return false;
     } else {
         if (y + shipSize > 10) return false;
+    }
+
+    // Sprawdź, czy statek nie koliduje z innymi statkami
+    for (let i = 0; i < state.placement.shipSize; i++) {
+        const cellX = isHorizontal ? x + i : x;
+        const cellY = isHorizontal ? y : y + i;
+
+        // Sprawdzenie, czy pole jest już zajęte
+        if (state.players[state.currentPlayer].boards[cellY][cellX] === 1) {
+            return false;
+        }
+
+        // Sprawdzenie sąsiednich pól (statki nie mogą się stykać)
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                const nx = cellX + dx;
+                const ny = cellY + dy;
+
+                if (nx >= 0 && nx < 10 && ny >= 0 && ny < 10) {
+                    if (state.players[state.currentPlayer].boards[ny][nx] === 1) {
+                        return false;
+                    }
+                }
+            }
+        }
     }
 
     return true;
