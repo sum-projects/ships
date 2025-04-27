@@ -81,6 +81,10 @@ button:hover {
     padding-left: 10px;
 }
 
+.placement-hover {
+    background-color: #80ff80!important;
+}
+
 /* Game board */
 .board {
     display: grid;

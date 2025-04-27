@@ -26,7 +26,11 @@ const state = {
         {
             name: 'Gracz 2'
         }
-    ]
+    ],
+    placement: {
+        shipSize: 4,
+    },
+    currentPlayer: 0,
 };
 
 // Game initialization
@@ -44,18 +48,39 @@ const cells = placementBoard.querySelectorAll('.cell');
 cells.forEach(cell => {
 
     cell.addEventListener('mouseenter', e => {
-        console.log(`Mouse entered cell at (${cell.dataset.x}, ${cell.dataset.y})`);
+        const x = parseInt(cell.dataset.x);
+        const y = parseInt(cell.dataset.y);
+        showPlacementPreview(x, y);
     });
 
     cell.addEventListener('mouseleave', e => {
-        console.log(`Mouse left cell at (${cell.dataset.x}, ${cell.dataset.y})`);
+        // console.log(`Mouse left cell at (${cell.dataset.x}, ${cell.dataset.y})`);
     });
 
     cell.addEventListener('click', e => {
-        console.log(`Cell clicked at (${cell.dataset.x}, ${cell.dataset.y})`);
+        // console.log(`Cell clicked at (${cell.dataset.x}, ${cell.dataset.y})`);
     });
 });
 
+// Game Functions
+function showPlacementPreview(x, y) {
+    const cells = placementBoard.querySelectorAll('.cell');
+
+
+    for (let i = 0; i < state.placement.shipSize; i++) {
+        const cellX = x + i;
+        const cellY = y;
+
+        // Sprawdź, czy komórka jest w granicach planszy
+        if (cellX >= 0 && cellX < 10 && cellY >= 0 && cellY < 10) {
+            const index = cellY * 10 + cellX;
+            console.log(`Previewing cell at (${cellX}, ${cellY})`);
+            cells[index].classList.add('placement-hover');
+        }
+    }
+}
+
+// Game Listeners
 startSetupBtn.addEventListener('click', () => {
     state.players[0].name = player1NameInput.value || 'Gracz 1';
     state.players[1].name = player2NameInput.value || 'Gracz 2';
