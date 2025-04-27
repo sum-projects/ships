@@ -85,6 +85,10 @@ button:hover {
     background-color: #80ff80!important;
 }
 
+.placement-invalid {
+    background-color: #ff8080!important;
+}
+
 /* Game board */
 .board {
     display: grid;

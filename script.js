@@ -66,6 +66,7 @@ cells.forEach(cell => {
 function showPlacementPreview(x, y) {
     const cells = placementBoard.querySelectorAll('.cell');
 
+    const isValid = isValidPlacement(x, y, state.placement.shipSize);
 
     for (let i = 0; i < state.placement.shipSize; i++) {
         const cellX = x + i;
@@ -75,7 +76,7 @@ function showPlacementPreview(x, y) {
         if (cellX >= 0 && cellX < 10 && cellY >= 0 && cellY < 10) {
             const index = cellY * 10 + cellX;
             console.log(`Previewing cell at (${cellX}, ${cellY})`);
-            cells[index].classList.add('placement-hover');
+            cells[index].classList.add(isValid ? 'placement-hover' : 'placement-invalid');
         }
     }
 }
@@ -83,8 +84,14 @@ function showPlacementPreview(x, y) {
 function clearPlacementPreview() {
     const cells = placementBoard.querySelectorAll('.cell');
     cells.forEach(cell => {
-        cell.classList.remove('placement-hover');
+        cell.classList.remove('placement-hover', 'placement-invalid');
     });
+}
+
+function isValidPlacement(x, y, shipSize) {
+    if (x + shipSize > 10) return false;
+
+    return true;
 }
 
 // Game Listeners
