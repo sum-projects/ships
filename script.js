@@ -262,8 +262,8 @@ function setupGameBoardListeners() {
 }
 
 function makeMove(targetPlayer, x, y) {
-    if (state.players[targetPlayer].boards[targetPlayer][y][x] === 2 ||
-        state.players[targetPlayer].boards[targetPlayer][y][x] === 3) {
+    if (state.players[targetPlayer].boards[y][x] === 2 ||
+        state.players[targetPlayer].boards[y][x] === 3) {
         return;
     }
 
@@ -278,7 +278,11 @@ function makeMove(targetPlayer, x, y) {
     if (isHit) {
         cell.classList.add('hit');
 
-        if (checkShipSunk(targetPlayer, x, y)) {
+        const sunkShip = this.findSunkShip(targetPlayer, x, y);
+
+        if (sunkShip) {
+            markAroundSunkShip(targetPlayer, sunkShip);
+
             state.players[targetPlayer].shipsCount--;
 
             // Aktualizacja licznika statków
@@ -301,8 +305,7 @@ function makeMove(targetPlayer, x, y) {
     }
 }
 
-function checkShipSunk(player, hitX, hitY) {
-
+function findSunkShip(player, hitX, hitY) {
     // Znajdź statek, który został trafiony
     let hitShip = null;
     for (const ship of state.players[player].ships) {
@@ -319,13 +322,47 @@ function checkShipSunk(player, hitX, hitY) {
     if (hitShip) {
         for (const [x, y] of hitShip) {
             if (state.players[player].boards[y][x] !== 2) {
-                return false; // Nie wszystkie komórki statku zostały trafione
+                return null; // Nie wszystkie komórki statku zostały trafione
             }
         }
-        return true; // Statek został zatopiony
+        return hitShip; // Wszystkie komórki statku zostały trafione - zwróć statek
     }
 
-    return false; // Nie znaleziono statku
+    return null; // Nie znaleziono statku
+}
+
+function markAroundSunkShip(player, ship) {
+    // Dla każdej komórki statku
+    for (const [shipX, shipY] of ship) {
+        // Sprawdź i oznacz wszystkie sąsiednie pola
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                // Pomijamy samą komórkę statku
+                if (dx === 0 && dy === 0) continue;
+
+                const nx = shipX + dx;
+                const ny = shipY + dy;
+
+                // Sprawdzenie, czy pole jest na planszy
+                if (nx >= 0 && nx < 10 && ny >= 0 && ny < 10) {
+                    // Jeśli pole nie jest jeszcze trafione lub oznaczone jako pudło
+                    if (state.players[player].boards[ny][nx] === 0 || state.players[player].boards[ny][nx] === 1) {
+                        // Oznacz jako pudło
+                        state.players[player].boards[ny][nx] = 3;
+
+                        // Aktualizacja widoku planszy
+                        const boardElement = player === 0 ?
+                            elements.player1Board : elements.player2Board;
+                        const index = ny * 10 + nx;
+                        const cell = boardElement.querySelectorAll('.cell')[index];
+
+                        // Dodaj klasę miss
+                        cell.classList.add('miss');
+                    }
+                }
+            }
+        }
+    }
 }
 
 function startPlacement() {
