@@ -54,7 +54,7 @@ cells.forEach(cell => {
     });
 
     cell.addEventListener('mouseleave', e => {
-        // console.log(`Mouse left cell at (${cell.dataset.x}, ${cell.dataset.y})`);
+        clearPlacementPreview();
     });
 
     cell.addEventListener('click', e => {
@@ -78,6 +78,13 @@ function showPlacementPreview(x, y) {
             cells[index].classList.add('placement-hover');
         }
     }
+}
+
+function clearPlacementPreview() {
+    const cells = placementBoard.querySelectorAll('.cell');
+    cells.forEach(cell => {
+        cell.classList.remove('placement-hover');
+    });
 }
 
 // Game Listeners
