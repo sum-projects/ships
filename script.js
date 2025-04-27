@@ -18,6 +18,11 @@ const elements = {
 
     // Game Elements
     placementInfo: document.querySelector('#placement-info'),
+    shipCounters: {
+        2: document.getElementById('ship-2'),
+        3: document.getElementById('ship-3'),
+        4: document.getElementById('ship-4')
+    }
 };
 
 const state = {
@@ -145,6 +150,8 @@ function placeShip(x, y) {
         else if (shipSize === 3) state.placement.shipSize = 2;
         else if (shipSize === 2) state.placement.shipSize = null;
     }
+
+    updateShipCounters();
 }
 
 function isValidPlacement(x, y, shipSize, isHorizontal) {
@@ -180,6 +187,21 @@ function isValidPlacement(x, y, shipSize, isHorizontal) {
     }
 
     return true;
+}
+
+function updateShipCounters() {
+    for (let size = 2; size <= 4; size++) {
+        elements.shipCounters[size].textContent = `${state.placement.remainingShips[size]} ${getShipName(size)}`;
+    }
+}
+
+function getShipName(size) {
+    switch(size) {
+        case 2: return 'statki (2-masztowe)';
+        case 3: return 'statki (3-masztowe)';
+        case 4: return 'statki (4-masztowe)';
+        default: return 'statki';
+    }
 }
 
 // Game Listeners
