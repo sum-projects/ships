@@ -23,10 +23,14 @@ const elements = {
 const state = {
     players: [
         {
-            name: 'Gracz 1'
+            name: 'Gracz 1',
+            ships: [],
+            boards: Array.from({ length: 10 }, () => Array.from({ length: 10 }, () => 0)),
         },
         {
-            name: 'Gracz 2'
+            name: 'Gracz 2',
+            ships: [],
+            boards: Array.from({ length: 10 }, () => Array.from({ length: 10 }, () => 0)),
         }
     ],
     placement: {
@@ -61,7 +65,9 @@ cells.forEach(cell => {
     });
 
     cell.addEventListener('click', e => {
-        // console.log(`Cell clicked at (${cell.dataset.x}, ${cell.dataset.y})`);
+        const x = parseInt(cell.dataset.x);
+        const y = parseInt(cell.dataset.y);
+        placeShip(x, y);
     });
 });
 
@@ -91,6 +97,31 @@ function clearPlacementPreview() {
     cells.forEach(cell => {
         cell.classList.remove('placement-hover', 'placement-invalid');
     });
+}
+
+function placeShip(x, y) {
+    const isHorizontal = state.placement.direction === 'horizontal';
+
+    if (!isValidPlacement(x, y, state.placement.shipSize, isHorizontal)) {
+        return;
+    }
+
+    const shipCells = [];
+    for (let i = 0; i < state.placement.shipSize; i++) {
+        const cellX = isHorizontal ? x + i : x;
+        const cellY = isHorizontal ? y : y + i;
+
+        // Zaznacz komórkę jako zajętą
+        state.players[state.currentPlayer].boards[cellY][cellX] = 1;
+
+        // Dodaj statek
+        shipCells.push([cellX, cellY]);
+
+        // Zaznacz komórkę na planszy
+        const index = cellY * 10 + cellX;
+        const cells = elements.placementBoard.querySelectorAll('.cell');
+        cells[index].classList.add('ship');
+    }
 }
 
 function isValidPlacement(x, y, shipSize, isHorizontal) {

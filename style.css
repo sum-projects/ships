@@ -110,3 +110,9 @@ button:hover {
     background-color: #cce6ff;
     cursor: pointer;
 }
+
+/* Game */
+
+.ship {
+    background-color: #808080!important;
+}
