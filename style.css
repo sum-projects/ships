@@ -39,6 +39,11 @@ button:hover {
     background-color: #004c99;
 }
 
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
 .container {
     max-width: 1000px;
     margin: 0 auto;

@@ -30,12 +30,12 @@ const state = {
         {
             name: 'Gracz 1',
             ships: [],
-            boards: Array.from({ length: 10 }, () => Array.from({ length: 10 }, () => 0)),
+            boards: Array.from({length: 10}, () => Array.from({length: 10}, () => 0)),
         },
         {
             name: 'Gracz 2',
             ships: [],
-            boards: Array.from({ length: 10 }, () => Array.from({ length: 10 }, () => 0)),
+            boards: Array.from({length: 10}, () => Array.from({length: 10}, () => 0)),
         }
     ],
     placement: {
@@ -152,6 +152,16 @@ function placeShip(x, y) {
     }
 
     updateShipCounters();
+
+
+    // Aktualizacja przycisku potwierdzenia
+    elements.confirmPlacementBtn.disabled = !canConfirmPlacement();
+}
+
+function canConfirmPlacement() {
+    return state.placement.remainingShips[2] === 0 &&
+        state.placement.remainingShips[3] === 0 &&
+        state.placement.remainingShips[4] === 0;
 }
 
 function isValidPlacement(x, y, shipSize, isHorizontal) {
@@ -196,11 +206,15 @@ function updateShipCounters() {
 }
 
 function getShipName(size) {
-    switch(size) {
-        case 2: return 'statki (2-masztowe)';
-        case 3: return 'statki (3-masztowe)';
-        case 4: return 'statki (4-masztowe)';
-        default: return 'statki';
+    switch (size) {
+        case 2:
+            return 'statki (2-masztowe)';
+        case 3:
+            return 'statki (3-masztowe)';
+        case 4:
+            return 'statki (4-masztowe)';
+        default:
+            return 'statki';
     }
 }
 
