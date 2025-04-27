@@ -38,11 +38,13 @@ const state = {
         {
             name: 'Gracz 1',
             ships: [],
+            shipsCount: 9,
             boards: Array.from({length: 10}, () => Array.from({length: 10}, () => 0)),
         },
         {
             name: 'Gracz 2',
             ships: [],
+            shipsCount: 9,
             boards: Array.from({length: 10}, () => Array.from({length: 10}, () => 0)),
         }
     ],
@@ -273,11 +275,57 @@ function makeMove(targetPlayer, x, y) {
     const index = y * 10 + x;
     const cell = boardElements.querySelectorAll('.cell')[index];
 
-    if (isHit)  {
+    if (isHit) {
         cell.classList.add('hit');
+
+        if (checkShipSunk(targetPlayer, x, y)) {
+            state.players[targetPlayer].shipsCount--;
+
+            // Aktualizacja licznika statków
+            if (targetPlayer === 0) {
+                elements.player1Ships.textContent = state.players[0].shipsCount;
+            } else {
+                elements.player2Ships.textContent = state.players[1].shipsCount;
+            }
+
+            if (state.players[targetPlayer].shipsCount === 0) {
+                endGame();
+                return;
+            }
+        }
     } else {
         cell.classList.add('miss');
+        // Zmiana gracza
+        state.currentPlayer = state.currentPlayer === 0 ? 1 : 0;
+        elements.currentPlayerSpan.textContent = state.players[state.currentPlayer].name;
     }
+}
+
+function checkShipSunk(player, hitX, hitY) {
+
+    // Znajdź statek, który został trafiony
+    let hitShip = null;
+    for (const ship of state.players[player].ships) {
+        for (const [x, y] of ship) {
+            if (x === hitX && y === hitY) {
+                hitShip = ship;
+                break;
+            }
+        }
+        if (hitShip) break;
+    }
+
+    // Sprawdź, czy wszystkie komórki statku zostały trafione
+    if (hitShip) {
+        for (const [x, y] of hitShip) {
+            if (state.players[player].boards[y][x] !== 2) {
+                return false; // Nie wszystkie komórki statku zostały trafione
+            }
+        }
+        return true; // Statek został zatopiony
+    }
+
+    return false; // Nie znaleziono statku
 }
 
 function startPlacement() {
@@ -298,7 +346,7 @@ function confirmPlacement() {
         state.currentPlayer = 1;
         createBoard(elements.placementBoard);
 
-        state.placement.remainingShips = { 2: 4, 3: 3, 4: 2 };
+        state.placement.remainingShips = {2: 4, 3: 3, 4: 2};
         state.placement.shipSize = 4;
 
         updateShipCounters();
@@ -346,12 +394,16 @@ function startGame() {
     elements.player1Header.textContent = state.players[0].name;
     elements.player2Header.textContent = state.players[1].name;
 
-    elements.player1Ships.textContent = state.players[0].ships.length;
-    elements.player2Ships.textContent = state.players[1].ships.length;
+    elements.player1Ships.textContent = state.players[0].shipsCount;
+    elements.player2Ships.textContent = state.players[1].shipsCount;
 
     setupGameBoardListeners();
 
     showScreen('game');
+}
+
+function endGame()
+{
 }
 
 function init() {
