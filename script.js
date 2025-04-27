@@ -189,6 +189,9 @@ function getShipName(size) {
 }
 
 function createBoard(board) {
+    // Wyczyszczenie planszy
+    board.innerHTML = '';
+
     for (let y = 0; y < 10; y++) {
         for (let x = 0; x < 10; x++) {
             const cell = document.createElement('div');
@@ -234,6 +237,25 @@ function startPlacement() {
 }
 
 function confirmPlacement() {
+    if (!canConfirmPlacement()) return;
+
+    if (state.currentPlayer === 0) {
+        state.currentPlayer = 1;
+        createBoard(elements.placementBoard);
+
+        state.placement.remainingShips = { 2: 4, 3: 3, 4: 2 };
+        state.placement.shipSize = 4;
+
+        updateShipCounters();
+
+        elements.placementInfo.textContent = `${state.players[1].name}, ustaw swoje statki`;
+
+        setupPlacementBoardListeners();
+
+        elements.confirmPlacementBtn.disabled = true;
+    } else {
+        startGame();
+    }
 }
 
 function rotateShip() {
@@ -258,6 +280,10 @@ function showScreen(screen) {
             elements.gameScreen.classList.remove('hidden');
             break;
     }
+}
+
+function startGame() {
+    this.showScreen('game');
 }
 
 function init() {
