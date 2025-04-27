@@ -140,3 +140,32 @@ button:disabled {
     font-weight: bold;
 }
 
+.hit {
+    background-color: #ff6666!important;
+    position: relative;
+}
+
+.hit::after {
+    content: "×";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+    color: black;
+}
+
+.miss {
+    background-color: #99ccff!important;
+    position: relative;
+}
+
+.miss::after {
+    content: "•";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 20px;
+    color: black;
+}

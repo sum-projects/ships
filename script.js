@@ -233,6 +233,53 @@ function setupPlacementBoardListeners() {
     });
 }
 
+function setupGameBoardListeners() {
+    const player1Cells = elements.player1Board.querySelectorAll('.cell');
+    const player2Cells = elements.player2Board.querySelectorAll('.cell');
+
+    player1Cells.forEach(cell => {
+        cell.addEventListener('click', (e) => {
+            if (state.currentPlayer === 1) {
+                const x = parseInt(e.target.dataset.x);
+                const y = parseInt(e.target.dataset.y);
+                makeMove(0, x, y); // Gracz 2 strzela w planszę gracza 1
+            }
+        });
+    });
+
+    player2Cells.forEach(cell => {
+        cell.addEventListener('click', (e) => {
+            if (state.currentPlayer === 0) {
+                const x = parseInt(e.target.dataset.x);
+                const y = parseInt(e.target.dataset.y);
+                makeMove(1, x, y); // Gracz 1 strzela w planszę gracza 2
+            }
+
+        });
+    });
+}
+
+function makeMove(targetPlayer, x, y) {
+    if (state.players[targetPlayer].boards[targetPlayer][y][x] === 2 ||
+        state.players[targetPlayer].boards[targetPlayer][y][x] === 3) {
+        return;
+    }
+
+    const isHit = state.players[targetPlayer].boards[y][x] === 1;
+
+    state.players[targetPlayer].boards[y][x] = isHit ? 2 : 3; // 2 - trafiony, 3 - pudło
+
+    const boardElements = targetPlayer === 0 ? elements.player1Board : elements.player2Board;
+    const index = y * 10 + x;
+    const cell = boardElements.querySelectorAll('.cell')[index];
+
+    if (isHit)  {
+        cell.classList.add('hit');
+    } else {
+        cell.classList.add('miss');
+    }
+}
+
 function startPlacement() {
     state.players[0].name = elements.player1NameInput.value || 'Gracz 1';
     state.players[1].name = elements.player2NameInput.value || 'Gracz 2';
@@ -302,7 +349,9 @@ function startGame() {
     elements.player1Ships.textContent = state.players[0].ships.length;
     elements.player2Ships.textContent = state.players[1].ships.length;
 
-    this.showScreen('game');
+    setupGameBoardListeners();
+
+    showScreen('game');
 }
 
 function init() {
