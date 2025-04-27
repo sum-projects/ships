@@ -10,7 +10,7 @@
     <div class="container">
         <h1>Gra w statki</h1>
 
-        <div id="setup-screen">
+        <div class="hidden" id="setup-screen">
             <h2>Przygotowanie gry</h2>
             <div class="player-setup">
                 <div class="form-control">
@@ -25,9 +25,22 @@
             </div>
         </div>
 
-        <div class="hidden" id="placement-screen">
+        <div id="placement-screen">
             <h2>Ustaw swoje statki</h2>
             <p id="placement-info">Gracz 1, ustaw swoje statki</p>
+
+            <div class="fleet-info">
+                <p>Pozostałe statki do ustawienia</p>
+                <ul>
+                    <li id="ship-2">4 statki (2-masztowe)</li>
+                    <li id="ship-3">3 statki (3-masztowe)</li>
+                    <li id="ship-4">2 statki (4-masztowe)</li>
+                </ul>
+            </div>
+
+            <div class="board-container">
+                <div class="board" id="placement-board"></div>
+            </div>
 
             <button id="confirm-placement-btn">Potwierdź ustawienie</button>
         </div>

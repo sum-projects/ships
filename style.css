@@ -59,3 +59,24 @@ button:hover {
     max-width: 300px;
     margin: 0 auto;
 }
+
+/* Placement */
+#placement-info {
+    text-align: center;
+    font-weight: bold;
+    margin: 10px 0;
+    color: #003366;
+}
+
+.fleet-info {
+    max-width: 300px;
+    margin: 15px auto;
+    padding: 10px;
+    background-color: #e6f2ff;
+    border-radius: 5px;
+}
+
+.fleet-info ul {
+    list-style-type: none;
+    padding-left: 10px;
+}
