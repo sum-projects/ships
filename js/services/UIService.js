@@ -1,4 +1,4 @@
-﻿class UIController {
+﻿class UIService {
     constructor() {
         this.elements = {
             // Screens

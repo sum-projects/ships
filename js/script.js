@@ -2,7 +2,7 @@ class BattleshipGame {
 
     constructor() {
         // Create UI controller
-        this.uiController = new UIController();
+        this.uiService = new UIService();
 
         // Create players
         this.players = [
@@ -11,13 +11,13 @@ class BattleshipGame {
         ];
 
         // Create game controllers
-        this.placementController = new PlacementController(this.uiController, this.players);
-        this.gameController = new GameController(this.uiController, this.players);
+        this.placementController = new PlacementController(this.uiService, this.players);
+        this.gameController = new GameController(this.uiService, this.players);
     }
 
     setupEventListeners() {
         // Start setup button
-        this.uiController.elements.startSetupBtn.addEventListener('click', () => this.startPlacement());
+        this.uiService.elements.startSetupBtn.addEventListener('click', () => this.startPlacement());
 
         // Placement complete event
         document.addEventListener('placementComplete', () => this.startGame());
@@ -28,12 +28,12 @@ class BattleshipGame {
 
     init() {
         this.setupEventListeners()
-        this.uiController.showScreen(CONSTANTS.SCREEN.SETUP);
+        this.uiService.showScreen(CONSTANTS.SCREEN.SETUP);
     }
 
     startPlacement() {
         // Get player names
-        const names = this.uiController.getPlayerNames();
+        const names = this.uiService.getPlayerNames();
         this.players[0].name = names.player1;
         this.players[1].name = names.player2;
 
