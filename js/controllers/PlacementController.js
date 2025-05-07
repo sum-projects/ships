@@ -1,128 +1,167 @@
 ﻿class PlacementController {
+    constructor(uiController, players) {
+        this.uiController = uiController;
+        this.players = players;
+        this.board = new Board(this.uiController.elements.placementBoard);
 
-    constructor() {
+        this.currentPlayer = 0;
 
-    }
+        this.placement = {
+            shipSize: 4,
+            direction: CONSTANTS.DIRECTION_HORIZONTAL,
+            remainingShips: {
+                2: CONSTANTS.SHIPS[2].count,
+                3: CONSTANTS.SHIPS[3].count,
+                4: CONSTANTS.SHIPS[4].count
+            }
+        };
 
-
-    start() {
-        state.players[0].name = elements.player1NameInput.value || 'Gracz 1';
-        state.players[1].name = elements.player2NameInput.value || 'Gracz 2';
-
-        elements.placementInfo.textContent = `${state.players[0].name}, ustaw swoje statki`;
-
-        createBoard(elements.placementBoard);
-        showScreen(CONSTANTS.SCREEN.PLACEMENT);
-        setupPlacementBoardListeners();
+        this.setupEventListeners();
     }
 
     setupEventListeners() {
+        // Rotate button
+        this.uiController.elements.rotateBtn.addEventListener('click', () => this.rotateShip());
 
+        // Confirm placement button
+        this.uiController.elements.confirmPlacementBtn.addEventListener('click', () => this.confirmPlacement());
+    }
+
+    start() {
+        // Create board
+        this.board.create();
+
+        // Setup board event listeners
+        this.setupBoardListeners();
+
+        // Update UI
+        this.uiController.setPlacementInfo(`${this.players[0].name}, ustaw swoje statki`);
+        this.uiController.updateShipCounters(this.placement.remainingShips);
+        this.uiController.setConfirmPlacementEnabled(false);
+
+        // Show placement screen
+        this.uiController.showScreen(CONSTANTS.SCREEN.PLACEMENT);
     }
 
     setupBoardListeners() {
-        const cells = elements.placementBoard.querySelectorAll('.cell');
-        cells.forEach(cell => {
+        const cells = this.uiController.elements.placementBoard.querySelectorAll('.cell');
 
+        cells.forEach(cell => {
+            // Mouse enter - show placement preview
             cell.addEventListener('mouseenter', e => {
                 const x = parseInt(cell.dataset.x);
                 const y = parseInt(cell.dataset.y);
-                showPlacementPreview(x, y);
+                this.board.showPlacementPreview(
+                    x, y,
+                    this.placement.shipSize,
+                    this.placement.direction,
+                    this.players[this.currentPlayer].board
+                );
             });
 
-            cell.addEventListener('mouseleave', e => {
-                clearPlacementPreview();
+            // Mouse leave - clear preview
+            cell.addEventListener('mouseleave', () => {
+                this.board.clearPlacementPreview();
             });
 
+            // Click - place ship
             cell.addEventListener('click', e => {
                 const x = parseInt(cell.dataset.x);
                 const y = parseInt(cell.dataset.y);
-                placeShip(x, y);
+                this.placeShip(x, y);
             });
         });
     }
 
     placeShip(x, y) {
-        if (!state.placement.shipSize) return;
+        if (!this.placement.shipSize) return;
 
-        const isHorizontal = state.placement.direction === 'horizontal';
-        const shipSize = state.placement.shipSize;
-        const currentPlayer = state.currentPlayer;
+        const ship = new Ship(
+            this.placement.shipSize,
+            this.placement.direction,
+            x, y
+        );
 
-        if (!isValidPlacement(x, y, shipSize, isHorizontal)) {
+        // Check if placement is valid
+        if (!ship.isValid() || ship.hasCollision(this.players[this.currentPlayer].board)) {
             return;
         }
 
-        const shipCells = [];
-        for (let i = 0; i < shipSize; i++) {
-            const cellX = isHorizontal ? x + i : x;
-            const cellY = isHorizontal ? y : y + i;
+        // Add ship to player
+        this.players[this.currentPlayer].addShip(ship.cells);
 
-            // Zaznacz komórkę jako zajętą
-            state.players[currentPlayer].boards[cellY][cellX] = 1;
+        // Mark ship on board
+        this.board.markShip(ship.cells);
 
-            // Dodaj statek
-            shipCells.push([cellX, cellY]);
+        // Decrease remaining ships counter
+        this.placement.remainingShips[this.placement.shipSize]--;
 
-            // Zaznacz komórkę na planszy
-            const index = cellY * CONSTANTS.BOARD_SIZE + cellX;
-            const cells = elements.placementBoard.querySelectorAll('.cell');
-            cells[index].classList.add('ship');
+        // Update next ship size
+        if (this.placement.remainingShips[this.placement.shipSize] === 0) {
+            if (this.placement.shipSize === 4) this.placement.shipSize = 3;
+            else if (this.placement.shipSize === 3) this.placement.shipSize = 2;
+            else if (this.placement.shipSize === 2) this.placement.shipSize = null;
         }
 
-        // Dodanie statku do listy statków
-        state.players[currentPlayer].ships.push(shipCells);
-
-        // Zmniejsz liczbę pozostałych statków
-        state.placement.remainingShips[shipSize]--;
-
-        console.log(state.placement.remainingShips);
-        if (state.placement.remainingShips[shipSize] === 0) {
-            if (shipSize === 4) state.placement.shipSize = 3;
-            else if (shipSize === 3) state.placement.shipSize = 2;
-            else if (shipSize === 2) state.placement.shipSize = null;
-        }
-
-        updateShipCounters();
-
-
-        // Aktualizacja przycisku potwierdzenia
-        elements.confirmPlacementBtn.disabled = !canConfirmPlacement();
+        // Update UI
+        this.uiController.updateShipCounters(this.placement.remainingShips);
+        this.uiController.setConfirmPlacementEnabled(this.canConfirmPlacement());
     }
 
     rotateShip() {
-        state.placement.direction = state.placement.direction === CONSTANTS.DIRECTION_HORIZONTAL ? CONSTANTS.DIRECTION_VERTICAL : CONSTANTS.DIRECTION_HORIZONTAL;
+        this.placement.direction =
+            this.placement.direction === CONSTANTS.DIRECTION_HORIZONTAL ?
+                CONSTANTS.DIRECTION_VERTICAL :
+                CONSTANTS.DIRECTION_HORIZONTAL;
     }
 
     canConfirmPlacement() {
-        return state.placement.remainingShips[2] === 0 &&
-            state.placement.remainingShips[3] === 0 &&
-            state.placement.remainingShips[4] === 0;
+        return this.placement.remainingShips[2] === 0 &&
+            this.placement.remainingShips[3] === 0 &&
+            this.placement.remainingShips[4] === 0;
     }
 
     confirmPlacement() {
-        if (!canConfirmPlacement()) return;
+        if (!this.canConfirmPlacement()) return;
 
-        if (state.currentPlayer === 0) {
-            state.currentPlayer = 1;
-            createBoard(elements.placementBoard);
+        if (this.currentPlayer === 0) {
+            // Switch to player 2
+            this.currentPlayer = 1;
 
-            state.placement.remainingShips = {2: 4, 3: 3, 4: 2};
-            state.placement.shipSize = 4;
+            // Reset board and placement
+            this.board.create();
+            this.placement.remainingShips = {
+                2: CONSTANTS.SHIPS[2].count,
+                3: CONSTANTS.SHIPS[3].count,
+                4: CONSTANTS.SHIPS[4].count
+            };
+            this.placement.shipSize = 4;
+            this.placement.direction = CONSTANTS.DIRECTION_HORIZONTAL;
 
-            updateShipCounters();
+            // Update UI
+            this.uiController.setPlacementInfo(`${this.players[1].name}, ustaw swoje statki`);
+            this.uiController.updateShipCounters(this.placement.remainingShips);
+            this.uiController.setConfirmPlacementEnabled(false);
 
-            elements.placementInfo.textContent = `${state.players[1].name}, ustaw swoje statki`;
-
-            setupPlacementBoardListeners();
-
-            elements.confirmPlacementBtn.disabled = true;
+            // Setup board listeners
+            this.setupBoardListeners();
         } else {
-            startGame();
+            // All ships placed, start the game
+            const event = new CustomEvent('placementComplete');
+            document.dispatchEvent(event);
         }
     }
 
-    restart() {
-
+    reset() {
+        this.currentPlayer = 0;
+        this.placement = {
+            shipSize: 4,
+            direction: CONSTANTS.DIRECTION_HORIZONTAL,
+            remainingShips: {
+                2: CONSTANTS.SHIPS[2].count,
+                3: CONSTANTS.SHIPS[3].count,
+                4: CONSTANTS.SHIPS[4].count
+            }
+        };
     }
 }
