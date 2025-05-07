@@ -41,26 +41,26 @@ const state = {
             name: 'Gracz 1',
             ships: [],
             shipsCount: 9,
-            boards: Array.from({length: 10}, () => Array.from({length: 10}, () => 0)),
+            boards: Array.from({length: CONSTANTS.BOARD_SIZE}, () => Array.from({length: CONSTANTS.BOARD_SIZE}, () => 0)),
         },
         {
             name: 'Gracz 2',
             ships: [],
             shipsCount: 9,
-            boards: Array.from({length: 10}, () => Array.from({length: 10}, () => 0)),
+            boards: Array.from({length: CONSTANTS.BOARD_SIZE}, () => Array.from({length: CONSTANTS.BOARD_SIZE}, () => 0)),
         }
     ],
     placement: {
         shipSize: 4,
-        direction: 'horizontal',
+        direction:  CONSTANTS.DIRECTION_HORIZONTAL,
         remainingShips: {
-            2: 4,
-            3: 3,
-            4: 2,
+            2: CONSTANTS.SHIPS[2].count,
+            3: CONSTANTS.SHIPS[3].count,
+            4: CONSTANTS.SHIPS[4].count
         },
     },
     currentPlayer: 0,
-    currentScreen: 'setup',
+    currentScreen: CONSTANTS.SCREEN.SETUP,
 };
 
 // Game Functions
@@ -78,8 +78,8 @@ function showPlacementPreview(x, y) {
         const cellY = isHorizontal ? y : y + i;
 
         // Sprawdź, czy komórka jest w granicach planszy
-        if (cellX >= 0 && cellX < 10 && cellY >= 0 && cellY < 10) {
-            const index = cellY * 10 + cellX;
+        if (cellX >= 0 && cellX < CONSTANTS.BOARD_SIZE && cellY >= 0 && cellY < CONSTANTS.BOARD_SIZE) {
+            const index = cellY * CONSTANTS.BOARD_SIZE + cellX;
             cells[index].classList.add(isValid ? 'placement-hover' : 'placement-invalid');
         }
     }
@@ -115,7 +115,7 @@ function placeShip(x, y) {
         shipCells.push([cellX, cellY]);
 
         // Zaznacz komórkę na planszy
-        const index = cellY * 10 + cellX;
+        const index = cellY * CONSTANTS.BOARD_SIZE + cellX;
         const cells = elements.placementBoard.querySelectorAll('.cell');
         cells[index].classList.add('ship');
     }
@@ -148,9 +148,9 @@ function canConfirmPlacement() {
 
 function isValidPlacement(x, y, shipSize, isHorizontal) {
     if (isHorizontal) {
-        if (x + shipSize > 10) return false;
+        if (x + shipSize > CONSTANTS.BOARD_SIZE) return false;
     } else {
-        if (y + shipSize > 10) return false;
+        if (y + shipSize > CONSTANTS.BOARD_SIZE) return false;
     }
 
     // Sprawdź, czy statek nie koliduje z innymi statkami
@@ -169,7 +169,7 @@ function isValidPlacement(x, y, shipSize, isHorizontal) {
                 const nx = cellX + dx;
                 const ny = cellY + dy;
 
-                if (nx >= 0 && nx < 10 && ny >= 0 && ny < 10) {
+                if (nx >= 0 && nx < CONSTANTS.BOARD_SIZE && ny >= 0 && ny < CONSTANTS.BOARD_SIZE) {
                     if (state.players[state.currentPlayer].boards[ny][nx] === 1) {
                         return false;
                     }
@@ -190,11 +190,11 @@ function updateShipCounters() {
 function getShipName(size) {
     switch (size) {
         case 2:
-            return 'statki (2-masztowe)';
+            return CONSTANTS.SHIPS[2].name;
         case 3:
-            return 'statki (3-masztowe)';
+            return CONSTANTS.SHIPS[3].name;
         case 4:
-            return 'statki (4-masztowe)';
+            return CONSTANTS.SHIPS[4].name;
         default:
             return 'statki';
     }
@@ -204,8 +204,8 @@ function createBoard(board) {
     // Wyczyszczenie planszy
     board.innerHTML = '';
 
-    for (let y = 0; y < 10; y++) {
-        for (let x = 0; x < 10; x++) {
+    for (let y = 0; y < CONSTANTS.BOARD_SIZE; y++) {
+        for (let x = 0; x < CONSTANTS.BOARD_SIZE; x++) {
             const cell = document.createElement('div');
             cell.classList.add('cell');
             cell.dataset.x = x;
@@ -264,17 +264,17 @@ function setupGameBoardListeners() {
 }
 
 function makeMove(targetPlayer, x, y) {
-    if (state.players[targetPlayer].boards[y][x] === 2 ||
-        state.players[targetPlayer].boards[y][x] === 3) {
+    if (state.players[targetPlayer].boards[y][x] === CONSTANTS.CELL_HIT ||
+        state.players[targetPlayer].boards[y][x] === CONSTANTS.CELL_MISS) {
         return;
     }
 
     const isHit = state.players[targetPlayer].boards[y][x] === 1;
 
-    state.players[targetPlayer].boards[y][x] = isHit ? 2 : 3; // 2 - trafiony, 3 - pudło
+    state.players[targetPlayer].boards[y][x] = isHit ? CONSTANTS.CELL_HIT : CONSTANTS.CELL_MISS;
 
     const boardElements = targetPlayer === 0 ? elements.player1Board : elements.player2Board;
-    const index = y * 10 + x;
+    const index = y * CONSTANTS.BOARD_SIZE + x;
     const cell = boardElements.querySelectorAll('.cell')[index];
 
     if (isHit) {
@@ -301,7 +301,6 @@ function makeMove(targetPlayer, x, y) {
         }
     } else {
         cell.classList.add('miss');
-        // Zmiana gracza
         state.currentPlayer = state.currentPlayer === 0 ? 1 : 0;
         elements.currentPlayerSpan.textContent = state.players[state.currentPlayer].name;
     }
@@ -334,9 +333,7 @@ function findSunkShip(player, hitX, hitY) {
 }
 
 function markAroundSunkShip(player, ship) {
-    // Dla każdej komórki statku
     for (const [shipX, shipY] of ship) {
-        // Sprawdź i oznacz wszystkie sąsiednie pola
         for (let dx = -1; dx <= 1; dx++) {
             for (let dy = -1; dy <= 1; dy++) {
                 // Pomijamy samą komórkę statku
@@ -345,20 +342,15 @@ function markAroundSunkShip(player, ship) {
                 const nx = shipX + dx;
                 const ny = shipY + dy;
 
-                // Sprawdzenie, czy pole jest na planszy
-                if (nx >= 0 && nx < 10 && ny >= 0 && ny < 10) {
-                    // Jeśli pole nie jest jeszcze trafione lub oznaczone jako pudło
-                    if (state.players[player].boards[ny][nx] === 0 || state.players[player].boards[ny][nx] === 1) {
-                        // Oznacz jako pudło
-                        state.players[player].boards[ny][nx] = 3;
+                if (nx >= 0 && nx < CONSTANTS.BOARD_SIZE && ny >= 0 && ny < CONSTANTS.BOARD_SIZE) {
+                    if (state.players[player].boards[ny][nx] === CONSTANTS.CELL_EMPTY || state.players[player].boards[ny][nx] === CONSTANTS.CELL_SHIP) {
+                        state.players[player].boards[ny][nx] = CONSTANTS.CELL_MISS;
 
-                        // Aktualizacja widoku planszy
                         const boardElement = player === 0 ?
                             elements.player1Board : elements.player2Board;
-                        const index = ny * 10 + nx;
+                        const index = ny * CONSTANTS.BOARD_SIZE + nx;
                         const cell = boardElement.querySelectorAll('.cell')[index];
 
-                        // Dodaj klasę miss
                         cell.classList.add('miss');
                     }
                 }
@@ -374,7 +366,7 @@ function startPlacement() {
     elements.placementInfo.textContent = `${state.players[0].name}, ustaw swoje statki`;
 
     createBoard(elements.placementBoard);
-    showScreen('placement');
+    showScreen(CONSTANTS.SCREEN.PLACEMENT);
     setupPlacementBoardListeners();
 }
 
@@ -401,7 +393,7 @@ function confirmPlacement() {
 }
 
 function rotateShip() {
-    state.placement.direction = state.placement.direction === 'horizontal' ? 'vertical' : 'horizontal';
+    state.placement.direction = state.placement.direction === CONSTANTS.DIRECTION_HORIZONTAL ? CONSTANTS.DIRECTION_VERTICAL : CONSTANTS.DIRECTION_HORIZONTAL;
 }
 
 function showScreen(screen) {
@@ -413,16 +405,16 @@ function showScreen(screen) {
     elements.gameOverScreen.classList.add('hidden');
 
     switch (screen) {
-        case 'setup':
+        case CONSTANTS.SCREEN.SETUP:
             elements.setupScreen.classList.remove('hidden');
             break;
-        case 'placement':
+        case CONSTANTS.SCREEN.PLACEMENT:
             elements.placementScreen.classList.remove('hidden');
             break;
-        case 'game':
+        case CONSTANTS.SCREEN.GAME:
             elements.gameScreen.classList.remove('hidden');
             break;
-        case 'gameOver':
+        case CONSTANTS.SCREEN.GAME_OVER:
             elements.gameOverScreen.classList.remove('hidden');
             break;
     }
@@ -442,7 +434,7 @@ function startGame() {
 
     setupGameBoardListeners();
 
-    showScreen('game');
+    showScreen(CONSTANTS.SCREEN.GAME);
 }
 
 function endGame()
@@ -452,30 +444,30 @@ function endGame()
     elements.winnerName.textContent = state.players[winner].name;
 
     // Pokazanie ekranu końcowego
-    showScreen('gameOver');
+    showScreen(CONSTANTS.SCREEN.GAME_OVER);
 }
 
 function restart() {
     // Reset stanu gry
     state.currentPlayer = 1;
-    state.players[0].boards = Array.from({length: 10}, () => Array.from({length: 10}, () => 0));
+    state.players[0].boards = Array.from({length: CONSTANTS.BOARD_SIZE}, () => Array.from({length: CONSTANTS.BOARD_SIZE}, () => 0));
     state.players[0].ships = [];
     state.players[0].shipsCount = 9;
 
-    state.players[1].boards = Array.from({length: 10}, () => Array.from({length: 10}, () => 0));
+    state.players[1].boards = Array.from({length: CONSTANTS.BOARD_SIZE}, () => Array.from({length: CONSTANTS.BOARD_SIZE}, () => 0));
     state.players[1].ships = [];
     state.players[1].shipsCount = 9;
 
     state.placement.remainingShips = {2: 4, 3: 3, 4: 2};
     state.placement.shipSize = 4;
-    state.placement.direction = 'horizontal';
+    state.placement.direction = CONSTANTS.DIRECTION_HORIZONTAL;
 
     // Aktualizacja UI
     elements.player1Ships.textContent = 9;
     elements.player2Ships.textContent = 9;
 
     // Powrót do ekranu ustawiania nazw
-    showScreen('setup');
+    showScreen(CONSTANTS.SCREEN.SETUP);
 }
 
 function init() {
@@ -484,7 +476,7 @@ function init() {
     elements.rotateBtn.addEventListener('click', () => rotateShip());
     elements.restartBtn.addEventListener('click', () => restart());
 
-    showScreen('setup');
+    showScreen(CONSTANTS.SCREEN.SETUP);
 }
 
 init();
