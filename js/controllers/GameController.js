@@ -35,7 +35,7 @@ class GameController {
         );
 
         // Update board displays
-        this.player1Board.update(this.players[0].board);
+        this.player1Board.update(this.players[0].board, true);
         this.player2Board.update(this.players[1].board, true);
 
         // Setup board event listeners
@@ -85,7 +85,7 @@ class GameController {
 
         // Update board display
         if (targetPlayer === 0) {
-            this.player1Board.update(this.players[0].board);
+            this.player1Board.update(this.players[0].board, true);
         } else {
             this.player2Board.update(this.players[1].board, true);
         }
@@ -100,7 +100,7 @@ class GameController {
 
                 // Update board display
                 if (targetPlayer === 0) {
-                    this.player1Board.update(this.players[0].board);
+                    this.player1Board.update(this.players[0].board, true);
                 } else {
                     this.player2Board.update(this.players[1].board, true);
                 }
