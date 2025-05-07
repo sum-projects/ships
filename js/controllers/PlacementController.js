@@ -90,6 +90,10 @@
         elements.confirmPlacementBtn.disabled = !canConfirmPlacement();
     }
 
+    rotateShip() {
+        state.placement.direction = state.placement.direction === CONSTANTS.DIRECTION_HORIZONTAL ? CONSTANTS.DIRECTION_VERTICAL : CONSTANTS.DIRECTION_HORIZONTAL;
+    }
+
     canConfirmPlacement() {
         return state.placement.remainingShips[2] === 0 &&
             state.placement.remainingShips[3] === 0 &&
