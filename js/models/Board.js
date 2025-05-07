@@ -1,7 +1,12 @@
 ﻿class Board {
-    create(board) {
-        // Wyczyszczenie planszy
-        board.innerHTML = '';
+    constructor(element) {
+        this.element = element;
+        this.cells = [];
+    }
+
+    create() {
+        this.element.innerHTML = '';
+        this.cells = [];
 
         for (let y = 0; y < CONSTANTS.BOARD_SIZE; y++) {
             for (let x = 0; x < CONSTANTS.BOARD_SIZE; x++) {
@@ -9,36 +14,65 @@
                 cell.classList.add('cell');
                 cell.dataset.x = x;
                 cell.dataset.y = y;
-                board.appendChild(cell);
+                this.element.appendChild(cell);
+                this.cells.push(cell);
             }
         }
     }
 
-    showPlacementPreview(x, y) {
-        if (!state.placement.shipSize) return;
+    getCell(x, y) {
+        const index = y * CONSTANTS.BOARD_SIZE + x;
+        return this.cells[index];
+    }
 
-        const cells = elements.placementBoard.querySelectorAll('.cell');
+    showPlacementPreview(x, y, size, direction, playerBoard) {
+        if (!size) return;
+        const ship = new Ship(size, direction, x, y);
+        const isValid = ship.isValid() && !ship.hasCollision(playerBoard);
 
-        const isHorizontal = state.placement.direction === 'horizontal';
-
-        const isValid = isValidPlacement(x, y, state.placement.shipSize, isHorizontal);
-
-        for (let i = 0; i < state.placement.shipSize; i++) {
-            const cellX = isHorizontal ? x + i : x;
-            const cellY = isHorizontal ? y : y + i;
-
-            // Sprawdź, czy komórka jest w granicach planszy
+        ship.cells.forEach(([cellX, cellY]) => {
             if (cellX >= 0 && cellX < CONSTANTS.BOARD_SIZE && cellY >= 0 && cellY < CONSTANTS.BOARD_SIZE) {
-                const index = cellY * CONSTANTS.BOARD_SIZE + cellX;
-                cells[index].classList.add(isValid ? 'placement-hover' : 'placement-invalid');
+                const cell = this.getCell(cellX, cellY);
+                cell.classList.add(isValid ? 'placement-hover' : 'placement-invalid');
             }
-        }
+        })
     }
 
     clearPlacementPreview() {
-        const cells = elements.placementBoard.querySelectorAll('.cell');
-        cells.forEach(cell => {
+        this.cells.forEach(cell => {
             cell.classList.remove('placement-hover', 'placement-invalid');
         });
+    }
+
+    markShip(ship) {
+        ship.forEach(([x, y]) => {
+            const cell = this.getCell(x, y);
+            cell.classList.add('ship');
+        });
+    }
+
+    update(playerBoard, hideShips = false) {
+        for (let y = 0; y < CONSTANTS.BOARD_SIZE; y++) {
+            for (let x = 0; x < CONSTANTS.BOARD_SIZE; x++) {
+                const cell = this.getCell(x, y);
+                const cellState = playerBoard[y][x];
+
+                cell.classList.remove('ship', 'hit', 'miss');
+
+                switch (cellState) {
+                    case CONSTANTS.CELL_SHIP:
+                        if (!hideShips) {
+                            cell.classList.add('ship');
+                        }
+                        break;
+                    case CONSTANTS.CELL_HIT:
+                        cell.classList.add('hit');
+                        break;
+                    case CONSTANTS.CELL_MISS:
+                        cell.classList.add('miss');
+                        break;
+                }
+            }
+        }
     }
 }
