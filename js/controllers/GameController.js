@@ -1,104 +1,135 @@
 class GameController {
-    start() {
-        createBoard(elements.player1Board);
-        createBoard(elements.player2Board);
+    constructor(uiController, players) {
+        this.uiController = uiController;
+        this.players = players;
+        this.currentPlayer = 0;
 
-        state.currentPlayer = 0;
-        elements.currentPlayerSpan.textContent = state.players[state.currentPlayer].name;
-        elements.player1Header.textContent = state.players[0].name;
-        elements.player2Header.textContent = state.players[1].name;
+        this.player1Board = new Board(this.uiController.elements.player1Board);
+        this.player2Board = new Board(this.uiController.elements.player2Board);
 
-        elements.player1Ships.textContent = state.players[0].shipsCount;
-        elements.player2Ships.textContent = state.players[1].shipsCount;
-
-        setupGameBoardListeners();
-
-        showScreen(CONSTANTS.SCREEN.GAME);
+        this.setupEventListeners();
     }
 
     setupEventListeners() {
+        // Restart button
+        this.uiController.elements.restartBtn.addEventListener('click', () => {
+            const event = new CustomEvent('restartGame');
+            document.dispatchEvent(event);
+        });
+    }
 
+    start() {
+        // Create boards
+        this.player1Board.create();
+        this.player2Board.create();
+
+        // Set current player
+        this.currentPlayer = 0;
+
+        // Update UI
+        this.uiController.setCurrentPlayer(this.players[this.currentPlayer].name);
+        this.uiController.setPlayerHeaders(this.players[0].name, this.players[1].name);
+        this.uiController.updateShipsCount(
+            this.players[0].ships.length,
+            this.players[1].ships.length
+        );
+
+        // Update board displays
+        this.player1Board.update(this.players[0].board);
+        this.player2Board.update(this.players[1].board, true);
+
+        // Setup board event listeners
+        this.setupBoardListeners();
+
+        // Show game screen
+        this.uiController.showScreen(CONSTANTS.SCREEN.GAME);
     }
 
     setupBoardListeners() {
-        const player1Cells = elements.player1Board.querySelectorAll('.cell');
-        const player2Cells = elements.player2Board.querySelectorAll('.cell');
+        const player1Cells = this.uiController.elements.player1Board.querySelectorAll('.cell');
+        const player2Cells = this.uiController.elements.player2Board.querySelectorAll('.cell');
 
+        // Player 1 board - only clickable by player 2
         player1Cells.forEach(cell => {
             cell.addEventListener('click', (e) => {
-                if (state.currentPlayer === 1) {
+                if (this.currentPlayer === 1) {
                     const x = parseInt(e.target.dataset.x);
                     const y = parseInt(e.target.dataset.y);
-                    makeMove(0, x, y); // Gracz 2 strzela w planszę gracza 1
+                    this.makeMove(0, x, y); // Player 2 shoots at player 1's board
                 }
             });
         });
 
+        // Player 2 board - only clickable by player 1
         player2Cells.forEach(cell => {
             cell.addEventListener('click', (e) => {
-                if (state.currentPlayer === 0) {
+                if (this.currentPlayer === 0) {
                     const x = parseInt(e.target.dataset.x);
                     const y = parseInt(e.target.dataset.y);
-                    makeMove(1, x, y); // Gracz 1 strzela w planszę gracza 2
+                    this.makeMove(1, x, y); // Player 1 shoots at player 2's board
                 }
-
             });
         });
     }
 
     makeMove(targetPlayer, x, y) {
-        if (state.players[targetPlayer].boards[y][x] === CONSTANTS.CELL_HIT ||
-            state.players[targetPlayer].boards[y][x] === CONSTANTS.CELL_MISS) {
+        const board = targetPlayer === 0 ? this.players[0].board : this.players[1].board;
+
+        // Check if cell was already shot
+        if (board[y][x] === CONSTANTS.CELL_HIT || board[y][x] === CONSTANTS.CELL_MISS) {
             return;
         }
 
-        const isHit = state.players[targetPlayer].boards[y][x] === 1;
+        // Process shot
+        const isHit = this.players[targetPlayer].receiveShot(x, y);
 
-        state.players[targetPlayer].boards[y][x] = isHit ? CONSTANTS.CELL_HIT : CONSTANTS.CELL_MISS;
-
-        const boardElements = targetPlayer === 0 ? elements.player1Board : elements.player2Board;
-        const index = y * CONSTANTS.BOARD_SIZE + x;
-        const cell = boardElements.querySelectorAll('.cell')[index];
+        // Update board display
+        if (targetPlayer === 0) {
+            this.player1Board.update(this.players[0].board);
+        } else {
+            this.player2Board.update(this.players[1].board, true);
+        }
 
         if (isHit) {
-            cell.classList.add('hit');
-
-            const sunkShip = findSunkShip(targetPlayer, x, y);
+            // Check if a ship was sunk
+            const sunkShip = this.players[targetPlayer].findSunkShip(x, y);
 
             if (sunkShip) {
-                markAroundSunkShip(targetPlayer, sunkShip);
+                // Mark cells around sunk ship as missed
+                this.players[targetPlayer].markAroundSunkShip(sunkShip);
 
-                state.players[targetPlayer].shipsCount--;
-
-                // Aktualizacja licznika statków
+                // Update board display
                 if (targetPlayer === 0) {
-                    elements.player1Ships.textContent = state.players[0].shipsCount;
+                    this.player1Board.update(this.players[0].board);
                 } else {
-                    elements.player2Ships.textContent = state.players[1].shipsCount;
+                    this.player2Board.update(this.players[1].board, true);
                 }
 
-                if (state.players[targetPlayer].shipsCount === 0) {
-                    endGame();
+                // Check if all ships are sunk
+                if (this.players[targetPlayer].areAllShipsSunk()) {
+                    this.endGame();
                     return;
                 }
             }
         } else {
-            cell.classList.add('miss');
-            state.currentPlayer = state.currentPlayer === 0 ? 1 : 0;
-            elements.currentPlayerSpan.textContent = state.players[state.currentPlayer].name;
+            // Miss - switch player
+            this.currentPlayer = this.currentPlayer === 0 ? 1 : 0;
+            this.uiController.setCurrentPlayer(this.players[this.currentPlayer].name);
         }
     }
 
     endGame() {
-        // Określenie zwycięzcy
-        const winner = state.currentPlayer;
-        elements.winnerName.textContent = state.players[winner].name;
+        // Determine winner
+        const winner = this.currentPlayer;
 
-        // Pokazanie ekranu końcowego
-        showScreen(CONSTANTS.SCREEN.GAME_OVER);
+        // Update UI
+        this.uiController.setWinner(this.players[winner].name);
+
+        // Show game over screen
+        this.uiController.showScreen(CONSTANTS.SCREEN.GAME_OVER);
     }
 
-    restart() {
-
+    reset() {
+        this.currentPlayer = 0;
     }
 }
