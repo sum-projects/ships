@@ -92,59 +92,6 @@ function clearPlacementPreview() {
     });
 }
 
-function placeShip(x, y) {
-    if (!state.placement.shipSize) return;
-
-    const isHorizontal = state.placement.direction === 'horizontal';
-    const shipSize = state.placement.shipSize;
-    const currentPlayer = state.currentPlayer;
-
-    if (!isValidPlacement(x, y, shipSize, isHorizontal)) {
-        return;
-    }
-
-    const shipCells = [];
-    for (let i = 0; i < shipSize; i++) {
-        const cellX = isHorizontal ? x + i : x;
-        const cellY = isHorizontal ? y : y + i;
-
-        // Zaznacz komórkę jako zajętą
-        state.players[currentPlayer].boards[cellY][cellX] = 1;
-
-        // Dodaj statek
-        shipCells.push([cellX, cellY]);
-
-        // Zaznacz komórkę na planszy
-        const index = cellY * CONSTANTS.BOARD_SIZE + cellX;
-        const cells = elements.placementBoard.querySelectorAll('.cell');
-        cells[index].classList.add('ship');
-    }
-
-    // Dodanie statku do listy statków
-    state.players[currentPlayer].ships.push(shipCells);
-
-    // Zmniejsz liczbę pozostałych statków
-    state.placement.remainingShips[shipSize]--;
-
-    console.log(state.placement.remainingShips);
-    if (state.placement.remainingShips[shipSize] === 0) {
-        if (shipSize === 4) state.placement.shipSize = 3;
-        else if (shipSize === 3) state.placement.shipSize = 2;
-        else if (shipSize === 2) state.placement.shipSize = null;
-    }
-
-    updateShipCounters();
-
-
-    // Aktualizacja przycisku potwierdzenia
-    elements.confirmPlacementBtn.disabled = !canConfirmPlacement();
-}
-
-function canConfirmPlacement() {
-    return state.placement.remainingShips[2] === 0 &&
-        state.placement.remainingShips[3] === 0 &&
-        state.placement.remainingShips[4] === 0;
-}
 
 function isValidPlacement(x, y, shipSize, isHorizontal) {
     if (isHorizontal) {
@@ -181,12 +128,6 @@ function isValidPlacement(x, y, shipSize, isHorizontal) {
     return true;
 }
 
-function updateShipCounters() {
-    for (let size = 2; size <= 4; size++) {
-        elements.shipCounters[size].textContent = `${state.placement.remainingShips[size]} ${getShipName(size)}`;
-    }
-}
-
 function getShipName(size) {
     switch (size) {
         case 2:
@@ -215,96 +156,11 @@ function createBoard(board) {
     }
 }
 
-function setupPlacementBoardListeners() {
-    const cells = elements.placementBoard.querySelectorAll('.cell');
-    cells.forEach(cell => {
 
-        cell.addEventListener('mouseenter', e => {
-            const x = parseInt(cell.dataset.x);
-            const y = parseInt(cell.dataset.y);
-            showPlacementPreview(x, y);
-        });
 
-        cell.addEventListener('mouseleave', e => {
-            clearPlacementPreview();
-        });
 
-        cell.addEventListener('click', e => {
-            const x = parseInt(cell.dataset.x);
-            const y = parseInt(cell.dataset.y);
-            placeShip(x, y);
-        });
-    });
-}
 
-function setupGameBoardListeners() {
-    const player1Cells = elements.player1Board.querySelectorAll('.cell');
-    const player2Cells = elements.player2Board.querySelectorAll('.cell');
 
-    player1Cells.forEach(cell => {
-        cell.addEventListener('click', (e) => {
-            if (state.currentPlayer === 1) {
-                const x = parseInt(e.target.dataset.x);
-                const y = parseInt(e.target.dataset.y);
-                makeMove(0, x, y); // Gracz 2 strzela w planszę gracza 1
-            }
-        });
-    });
-
-    player2Cells.forEach(cell => {
-        cell.addEventListener('click', (e) => {
-            if (state.currentPlayer === 0) {
-                const x = parseInt(e.target.dataset.x);
-                const y = parseInt(e.target.dataset.y);
-                makeMove(1, x, y); // Gracz 1 strzela w planszę gracza 2
-            }
-
-        });
-    });
-}
-
-function makeMove(targetPlayer, x, y) {
-    if (state.players[targetPlayer].boards[y][x] === CONSTANTS.CELL_HIT ||
-        state.players[targetPlayer].boards[y][x] === CONSTANTS.CELL_MISS) {
-        return;
-    }
-
-    const isHit = state.players[targetPlayer].boards[y][x] === 1;
-
-    state.players[targetPlayer].boards[y][x] = isHit ? CONSTANTS.CELL_HIT : CONSTANTS.CELL_MISS;
-
-    const boardElements = targetPlayer === 0 ? elements.player1Board : elements.player2Board;
-    const index = y * CONSTANTS.BOARD_SIZE + x;
-    const cell = boardElements.querySelectorAll('.cell')[index];
-
-    if (isHit) {
-        cell.classList.add('hit');
-
-        const sunkShip = findSunkShip(targetPlayer, x, y);
-
-        if (sunkShip) {
-            markAroundSunkShip(targetPlayer, sunkShip);
-
-            state.players[targetPlayer].shipsCount--;
-
-            // Aktualizacja licznika statków
-            if (targetPlayer === 0) {
-                elements.player1Ships.textContent = state.players[0].shipsCount;
-            } else {
-                elements.player2Ships.textContent = state.players[1].shipsCount;
-            }
-
-            if (state.players[targetPlayer].shipsCount === 0) {
-                endGame();
-                return;
-            }
-        }
-    } else {
-        cell.classList.add('miss');
-        state.currentPlayer = state.currentPlayer === 0 ? 1 : 0;
-        elements.currentPlayerSpan.textContent = state.players[state.currentPlayer].name;
-    }
-}
 
 function findSunkShip(player, hitX, hitY) {
     // Znajdź statek, który został trafiony
@@ -359,93 +215,14 @@ function markAroundSunkShip(player, ship) {
     }
 }
 
-function startPlacement() {
-    state.players[0].name = elements.player1NameInput.value || 'Gracz 1';
-    state.players[1].name = elements.player2NameInput.value || 'Gracz 2';
-
-    elements.placementInfo.textContent = `${state.players[0].name}, ustaw swoje statki`;
-
-    createBoard(elements.placementBoard);
-    showScreen(CONSTANTS.SCREEN.PLACEMENT);
-    setupPlacementBoardListeners();
-}
-
-function confirmPlacement() {
-    if (!canConfirmPlacement()) return;
-
-    if (state.currentPlayer === 0) {
-        state.currentPlayer = 1;
-        createBoard(elements.placementBoard);
-
-        state.placement.remainingShips = {2: 4, 3: 3, 4: 2};
-        state.placement.shipSize = 4;
-
-        updateShipCounters();
-
-        elements.placementInfo.textContent = `${state.players[1].name}, ustaw swoje statki`;
-
-        setupPlacementBoardListeners();
-
-        elements.confirmPlacementBtn.disabled = true;
-    } else {
-        startGame();
-    }
-}
 
 function rotateShip() {
     state.placement.direction = state.placement.direction === CONSTANTS.DIRECTION_HORIZONTAL ? CONSTANTS.DIRECTION_VERTICAL : CONSTANTS.DIRECTION_HORIZONTAL;
 }
 
-function showScreen(screen) {
-    state.currentScreen = screen;
 
-    elements.setupScreen.classList.add('hidden');
-    elements.placementScreen.classList.add('hidden');
-    elements.gameScreen.classList.add('hidden');
-    elements.gameOverScreen.classList.add('hidden');
 
-    switch (screen) {
-        case CONSTANTS.SCREEN.SETUP:
-            elements.setupScreen.classList.remove('hidden');
-            break;
-        case CONSTANTS.SCREEN.PLACEMENT:
-            elements.placementScreen.classList.remove('hidden');
-            break;
-        case CONSTANTS.SCREEN.GAME:
-            elements.gameScreen.classList.remove('hidden');
-            break;
-        case CONSTANTS.SCREEN.GAME_OVER:
-            elements.gameOverScreen.classList.remove('hidden');
-            break;
-    }
-}
 
-function startGame() {
-    createBoard(elements.player1Board);
-    createBoard(elements.player2Board);
-
-    state.currentPlayer = 0;
-    elements.currentPlayerSpan.textContent = state.players[state.currentPlayer].name;
-    elements.player1Header.textContent = state.players[0].name;
-    elements.player2Header.textContent = state.players[1].name;
-
-    elements.player1Ships.textContent = state.players[0].shipsCount;
-    elements.player2Ships.textContent = state.players[1].shipsCount;
-
-    setupGameBoardListeners();
-
-    showScreen(CONSTANTS.SCREEN.GAME);
-}
-
-function endGame()
-{
-    // Określenie zwycięzcy
-    const winner = state.currentPlayer;
-    elements.winnerName.textContent = state.players[winner].name;
-
-    // Pokazanie ekranu końcowego
-    showScreen(CONSTANTS.SCREEN.GAME_OVER);
-}
 
 function restart() {
     // Reset stanu gry
