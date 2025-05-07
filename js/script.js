@@ -36,20 +36,6 @@ const elements = {
 };
 
 const state = {
-    players: [
-        {
-            name: 'Gracz 1',
-            ships: [],
-            shipsCount: 9,
-            boards: Array.from({length: CONSTANTS.BOARD_SIZE}, () => Array.from({length: CONSTANTS.BOARD_SIZE}, () => 0)),
-        },
-        {
-            name: 'Gracz 2',
-            ships: [],
-            shipsCount: 9,
-            boards: Array.from({length: CONSTANTS.BOARD_SIZE}, () => Array.from({length: CONSTANTS.BOARD_SIZE}, () => 0)),
-        }
-    ],
     placement: {
         shipSize: 4,
         direction:  CONSTANTS.DIRECTION_HORIZONTAL,
